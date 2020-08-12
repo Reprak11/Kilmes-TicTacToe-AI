@@ -87,6 +87,7 @@ def juega(gato,turno):
         imprimeTablero(gato)
     if (ganador == False):
         print("Empate con sabor a derrota")
+
 if __name__ == "__main__":
     gato=creaTablero()
     turno = True
