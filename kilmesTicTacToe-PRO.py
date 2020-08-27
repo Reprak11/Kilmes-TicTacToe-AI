@@ -1,4 +1,5 @@
 import random
+import numpy as np
 
 class jugador:
     def __init__(self, name, estado, turno):
@@ -32,6 +33,19 @@ class tablero:
         self.final = False
     def setModoJuego(self,formaJuego):
         self.formaJuego = formaJuego
+    def setDificultad(self):
+        try:
+            difi = int(input("Seleccione Dificultad\n1: Facil\n2: Dificil\n"))
+            if (difi == 1 or difi == 2):
+                self.dificultad = difi
+            else:
+                print("Valor fuera de rango")
+                self.setDificultad() 
+        except ValueError:
+            print("Valor fuera de rango")
+            self.setDificultad()
+    def regresaDificutad(self):
+        return self.dificultad
     def muestraTablero(self):
         for i in range(0,len(self.tablero)):
             fila=""
@@ -71,17 +85,77 @@ class tablero:
     def randomPos(self):
         return random.randint(0,2)
 
-    def agregaEstado(self,estado, jugador):
-        if(self.formaJuego == 1 and jugador == "miniT4ynis"):
-            print("Hola")
-            self.x = self.randomPos()
-            self.y = self.randomPos()
+    def cambiaEstado(self,estado):
+        if(estado == "X"):
+            estado = "O"
+        else:
+            estado = "X"
+        return estado
+
+    def ticTacTree(self,tablero, estado):
+        nodoinicial = tablero
+        nodotemp = np.copy(nodoinicial)
+        hijos = []
+        for i in range(0,3):
+            for j in range(0,3):
+                if nodoinicial[i][j] == " ":
+                    nodotemp[i][j] = estado
+                    estado = self.cambiaEstado(estado)
+                    nietos = self.ticTacTree(nodotemp,estado)
+                    hijos.append([nodotemp,nietos])
+                    nodotemp = np.copy(nodoinicial)
+                    estado = self.cambiaEstado(estado)
+        print("---------")
+        for i in range(len(hijos)):
+            print(hijos[i])
+        return hijos
+
+    def MiniMax(self, estado):
+        if self.cuenta < 4:
+            if (self.tablero[0][0] == " "):
+                self.tablero[0][0] = estado
+                self.muestraTablero()
+                self.checaGanador(0,0)
+            elif (self.tablero[0][2] == " "):
+                self.tablero[0][2] = estado
+                self.muestraTablero()
+                self.checaGanador(0,2)
+            elif (self.tablero[2][0] == " "):
+                self.tablero[2][0] = estado
+                self.muestraTablero()
+                self.checaGanador(2,0)
+            elif (self.tablero[2][2] == " "):
+                self.tablero[2][2] = estado
+                self.muestraTablero()
+                self.checaGanador(2,2)
+            elif (self.tablero[1][1] == " "):
+                self.tablero[1][1] = estado
+                self.muestraTablero()
+                self.checaGanador(1,1)
+        else:
+            self.ticTacTree(self.tablero, estado)
+            self.x = int(input("Valor X"))
+            self.y = int(input("Valor Y"))
             if self.tablero[self.x][self.y] == " ":
                 self.tablero[self.x][self.y] = estado
                 self.muestraTablero()
                 self.checaGanador(self.x,self.y)
             else:
-                self.agregaEstado(estado,jugador)
+                self.MiniMax(estado,jugador)
+
+    def agregaEstado(self,estado, jugador):
+        if(self.formaJuego == 1 and jugador == "miniT4ynis"):
+            if (self.dificultad == 1):
+                self.x = self.randomPos()
+                self.y = self.randomPos()
+                if self.tablero[self.x][self.y] == " ":
+                    self.tablero[self.x][self.y] = estado
+                    self.muestraTablero()
+                    self.checaGanador(self.x,self.y)
+                else:
+                    self.agregaEstado(estado,jugador)
+            elif (self.dificultad == 2):
+                self.MiniMax(estado)
         else:
             print("Turno de "+jugador)
             self.x = self.posiX()
@@ -120,6 +194,7 @@ class Juego:
         self.tabl.setModoJuego(self.formaJuego)
         self.player1 = jugador(input("Nombre Player 1: "),'O',True)
         if (self.formaJuego == 1):
+            self.tabl.setDificultad()
             self.player2 = pc('X',False)
         else:
             self.player2 = jugador(input("Nombre Player 2: "),'X',False)
