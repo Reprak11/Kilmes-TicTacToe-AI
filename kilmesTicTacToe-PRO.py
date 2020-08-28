@@ -100,46 +100,63 @@ class tablero:
             for j in range(0,3):
                 if nodoinicial[i][j] == " ":
                     nodotemp[i][j] = estado
-                    estado = self.cambiaEstado(estado)
-                    nietos = self.ticTacTree(nodotemp,estado)
-                    hijos.append([nodotemp,nietos])
+                    self.checaGanador(nodotemp,i,j)
+                    if (self.checkWinner()):
+                        hijos.append([nodotemp])
+                        self.changeWinner()
+                    else:
+                        estado = self.cambiaEstado(estado)
+                        nietos = self.ticTacTree(nodotemp,estado)
+                        if nietos == []:
+                            hijos.append([nodotemp])
+                        else:
+                            hijos.append([nodotemp,nietos])
+                        estado = self.cambiaEstado(estado)
                     nodotemp = np.copy(nodoinicial)
-                    estado = self.cambiaEstado(estado)
-        print("---------")
-        for i in range(len(hijos)):
-            print(hijos[i])
         return hijos
+
+    def evaluaArbol(self, hijos):
+        for i in range(0,len(hijos)):
+            if (len(hijos[i]) == 1):
+                if (type(hijos[i]) == list):
+                    print(hijos[i])
+                    print()
+            else:
+                self.evaluaArbol(hijos[i])
+        return
+
 
     def MiniMax(self, estado):
         if self.cuenta < 4:
             if (self.tablero[0][0] == " "):
                 self.tablero[0][0] = estado
                 self.muestraTablero()
-                self.checaGanador(0,0)
+                self.checaGanador(self.tablero,0,0)
             elif (self.tablero[0][2] == " "):
                 self.tablero[0][2] = estado
                 self.muestraTablero()
-                self.checaGanador(0,2)
+                self.checaGanador(self.tablero,0,2)
             elif (self.tablero[2][0] == " "):
                 self.tablero[2][0] = estado
                 self.muestraTablero()
-                self.checaGanador(2,0)
+                self.checaGanador(self.tablero,2,0)
             elif (self.tablero[2][2] == " "):
                 self.tablero[2][2] = estado
                 self.muestraTablero()
-                self.checaGanador(2,2)
+                self.checaGanador(self.tablero,2,2)
             elif (self.tablero[1][1] == " "):
                 self.tablero[1][1] = estado
                 self.muestraTablero()
-                self.checaGanador(1,1)
+                self.checaGanador(self.tablero,1,1)
         else:
-            self.ticTacTree(self.tablero, estado)
+            hijos = self.ticTacTree(self.tablero, estado)
+            self.evaluaArbol(hijos)
             self.x = int(input("Valor X"))
             self.y = int(input("Valor Y"))
             if self.tablero[self.x][self.y] == " ":
                 self.tablero[self.x][self.y] = estado
                 self.muestraTablero()
-                self.checaGanador(self.x,self.y)
+                self.checaGanador(self.tablero,self.x,self.y)
             else:
                 self.MiniMax(estado,jugador)
 
@@ -151,7 +168,7 @@ class tablero:
                 if self.tablero[self.x][self.y] == " ":
                     self.tablero[self.x][self.y] = estado
                     self.muestraTablero()
-                    self.checaGanador(self.x,self.y)
+                    self.checaGanador(self.tablero,self.x,self.y)
                 else:
                     self.agregaEstado(estado,jugador)
             elif (self.dificultad == 2):
@@ -163,19 +180,19 @@ class tablero:
             if self.tablero[self.x][self.y] == " ":
                 self.tablero[self.x][self.y] = estado
                 self.muestraTablero()
-                self.checaGanador(self.x,self.y)
+                self.checaGanador(self.tablero,self.x,self.y)
             else:
                 print("No seas wey esa casilla ya está ocupada")
                 self.agregaEstado(estado,jugador)
         
-    def checaGanador(self, x,y):
-            if (self.tablero[x][0] != " " and  self.tablero[x][0] == self.tablero[x][1] and self.tablero[x][1] == self.tablero[x][2]):
+    def checaGanador(self, tablero,x,y):
+            if (tablero[x][0] != " " and  tablero[x][0] == tablero[x][1] and tablero[x][1] == tablero[x][2]):
                 self.changeWinner()
-            if (self.tablero[0][y] != " " and  self.tablero[0][y] == self.tablero[1][y] and self.tablero[1][y] == self.tablero[2][y]):
+            if (tablero[0][y] != " " and  tablero[0][y] == tablero[1][y] and tablero[1][y] == tablero[2][y]):
                 self.changeWinner()
-            if (self.tablero[0][0] != " " and self.tablero[0][0] ==self.tablero[1][1] and self.tablero[1][1] == self.tablero[2][2]):
+            if (tablero[0][0] != " " and tablero[0][0] ==tablero[1][1] and tablero[1][1] == tablero[2][2]):
                 self.changeWinner()
-            if (self.tablero[0][2] != " " and self.tablero[0][2] == self.tablero[1][1] and self.tablero[1][1] == self.tablero[2][0]):
+            if (tablero[0][2] != " " and tablero[0][2] == tablero[1][1] and tablero[1][1] == tablero[2][0]):
                 self.changeWinner()
     def agregaCuenta(self):
         self.cuenta += 1
@@ -185,6 +202,8 @@ class tablero:
         return self.final
     def changeWinner(self):
         self.final = not self.final
+    def checkWinner(self):
+        return self.final
 
 class Juego:
     def __init__(self):
@@ -224,7 +243,7 @@ class Juego:
                 break
             self.turno = not self.turno
             self.tabl.agregaCuenta()
-        if (self.tabl.checaGanador == False):
+        if (self.tabl.checkWinner() == False):
             print("Nadie Ganó")
 
 
