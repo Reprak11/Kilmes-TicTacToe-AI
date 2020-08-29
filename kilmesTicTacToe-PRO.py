@@ -31,6 +31,7 @@ class tablero:
         self.muestraTablero()
         self.cuenta = 0
         self.final = False
+        self.minimaxflag = False;
     def setModoJuego(self,formaJuego):
         self.formaJuego = formaJuego
     def setDificultad(self):
@@ -92,6 +93,31 @@ class tablero:
             estado = "X"
         return estado
 
+    def checaNodo(self,tablero):
+        resultado = -100
+        ganador = False
+        for i in range(0,3):
+            if (tablero[i][0] != " " and  tablero[i][0] == tablero[i][1] and tablero[i][1] == tablero[i][2]):
+                if tablero[i][0] == "X":
+                    return 1
+                else:
+                    return -1
+            if (tablero[0][i] != " " and  tablero[0][i] == tablero[1][i] and tablero[1][i] == tablero[2][i]):
+                if tablero[0][i] == "X":
+                    return 1
+                else:
+                    return -1
+        if (tablero[0][0] != " " and tablero[0][0] ==tablero[1][1] and tablero[1][1] == tablero[2][2]):
+            if tablero[0][0] == "X":
+                return 1
+            else:
+                return -1
+        if (tablero[0][2] != " " and tablero[0][2] == tablero[1][1] and tablero[1][1] == tablero[2][0]):
+            if tablero[0][0] == "X":
+                return 1
+            else:
+                return -1
+        return 0
     def ticTacTree(self,tablero, estado):
         nodoinicial = tablero
         nodotemp = np.copy(nodoinicial)
@@ -116,15 +142,31 @@ class tablero:
         return hijos
 
     def evaluaArbol(self, hijos):
+        valores = []
         for i in range(0,len(hijos)):
             if (len(hijos[i]) == 1):
                 if (type(hijos[i]) == list):
-                    print(hijos[i])
-                    print()
+                    if (len(hijos[i][0]) == 1):
+                        #print(hijos[i][0][0])
+                        valor = self.checaNodo(hijos[i][0][0])
+                        valores.append(valor)
+                    else:
+                        #print(hijos[i][0])
+                        valor=self.checaNodo(hijos[i][0])
+                        valores.append(valor)
+                    #x = self.checaNodo(hijos[i][0])
+                    #print(x)
             else:
-                self.evaluaArbol(hijos[i])
-        return
+                x=(self.evaluaArbol(hijos[i]))
+                if x != []:
+                    if self.minimaxflag:
+                        valores.append((x))
+                    else:
+                        valores.append((x))
+                self.minimaxflag = not self.minimaxflag
+        return valores
 
+    
 
     def MiniMax(self, estado):
         if self.cuenta < 4:
@@ -150,7 +192,7 @@ class tablero:
                 self.checaGanador(self.tablero,1,1)
         else:
             hijos = self.ticTacTree(self.tablero, estado)
-            self.evaluaArbol(hijos)
+            print(self.evaluaArbol(hijos))
             self.x = int(input("Valor X"))
             self.y = int(input("Valor Y"))
             if self.tablero[self.x][self.y] == " ":
