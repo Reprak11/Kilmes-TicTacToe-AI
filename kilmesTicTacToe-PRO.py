@@ -31,7 +31,7 @@ class tablero:
         self.muestraTablero()
         self.cuenta = 0
         self.final = False
-        self.minimaxflag = False;
+        self.minimaxflag = True;
     def setModoJuego(self,formaJuego):
         self.formaJuego = formaJuego
     def setDificultad(self):
@@ -113,7 +113,7 @@ class tablero:
             else:
                 return -1
         if (tablero[0][2] != " " and tablero[0][2] == tablero[1][1] and tablero[1][1] == tablero[2][0]):
-            if tablero[0][0] == "X":
+            if tablero[0][2] == "X":
                 return 1
             else:
                 return -1
@@ -143,6 +143,7 @@ class tablero:
 
     def evaluaArbol(self, hijos):
         valores = []
+        self.minimaxflag = not self.minimaxflag
         for i in range(0,len(hijos)):
             if (len(hijos[i]) == 1):
                 if (type(hijos[i]) == list):
@@ -159,15 +160,33 @@ class tablero:
             else:
                 x=(self.evaluaArbol(hijos[i]))
                 if x != []:
-                    if self.minimaxflag:
                         valores.append((x))
-                    else:
-                        valores.append((x))
-                self.minimaxflag = not self.minimaxflag
         return valores
 
-    
-
+    def resultHijo(self, hijo, apuntador):
+        if type(hijo) == int:
+            return hijo
+        else:
+            valores=[]
+            for i in range(len(hijo)):
+                valores.append(self.resultHijo(hijo[i], not apuntador))
+            if apuntador:
+                return max(valores)
+            else:
+                return min(valores)
+    def mejorPosi(self, index):
+        cuenta = 0
+        posiciones = []
+        for i in range(0,3):
+            for j in range(0,3):
+                if self.tablero[i][j] == " ":  
+                    if cuenta == index:
+                        posiciones.append(i)
+                        posiciones.append(j)
+                        return posiciones
+                    else:
+                        cuenta = cuenta + 1
+        return posiciones
     def MiniMax(self, estado):
         if self.cuenta < 4:
             if (self.tablero[0][0] == " "):
@@ -192,9 +211,13 @@ class tablero:
                 self.checaGanador(self.tablero,1,1)
         else:
             hijos = self.ticTacTree(self.tablero, estado)
-            print(self.evaluaArbol(hijos))
-            self.x = int(input("Valor X"))
-            self.y = int(input("Valor Y"))
+            arbolsolucion=self.evaluaArbol(hijos)
+            lugares=[]
+            for i in range (0,len(arbolsolucion)):
+                lugares.append(self.resultHijo(arbolsolucion[i],True))
+            posiciones = self.mejorPosi(lugares.index(max(lugares)))
+            self.x=posiciones[0]
+            self.y=posiciones[1]
             if self.tablero[self.x][self.y] == " ":
                 self.tablero[self.x][self.y] = estado
                 self.muestraTablero()
